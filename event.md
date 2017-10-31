@@ -1,5 +1,7 @@
 # Eventの値の処理
 
+## Python 2.7
+
 ```python
 def lambda_handler(event, context):
     try:
