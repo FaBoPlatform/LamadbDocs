@@ -3,34 +3,37 @@
 ## Python 2.7
 
 ```python
+# -*- coding: utf-8 -*-
+
 import boto3
 
-S3_BUCKET = 's3test-1234567'
+DYNAMO_TABLE = "TEST_TABLE"
 
 def save_data(data):
-    s3_client = boto3.client('s3')
-    dir = "test_file"
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table(DYNAMO_TABLE)
+    
     try:
-        s3_client.put_object(Body=data, Bucket=S3_BUCKET, Key=dir)
-        return '1'
+        table.put_item(
+            Item={
+                "message": data,
+            }
+        )
+        return "1"
     except Exception, e:
         error_code = e.response['Error']['Code']
-        if error_code == 'AccessDenied':
-            print "Access denied"
-        elif error_code == 'AllAccessDisabled':
-            print "Can not find bucket"
-        else:
-            print e
-        return '-1'
+        if error_code == "AccessDeniedException":
+            print "DynamoDBにアクセスできない"
+        return "-1"
+        
 
 def lambda_handler(event, context):
-    result = save_data("TEST")
+    result = save_data("Put Test")
     return result
 ```
 |Error Coce|意味|
 |:--|:--|
-|AccessDenied|Bucketへのアクセス権限がない|
-|AllAccessDisabled|対象のBucketが見つからない|
+|AccessDeniedException|DynamoDBにアクセスできない|
 
 
 ```
@@ -48,7 +51,7 @@ def lambda_handler(event, context):
         },
         {
             "Effect": "Allow",
-            "Action": "s3:*",
+            "Action": "dynamodb:*",
             "Resource": "*"
         }
     ]
